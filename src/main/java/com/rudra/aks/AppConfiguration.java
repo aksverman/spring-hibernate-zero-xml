@@ -21,28 +21,27 @@ import com.rudra.aks.bo.TestBO;
 
 @Configuration
 @ComponentScan(basePackages = "com.rudra.aks.")
-@EnableWebMvc
-public class AppConfiguration extends	WebMvcConfigurerAdapter {
-
+//@EnableWebMvc
+public class AppConfiguration// extends	WebMvcConfigurerAdapter
+{
 	
-	
-	@Override
+	/*@Override
 	public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
 		configurer.enable();
 	}
-
+*/
 	@Bean
 	@Autowired
-	public HibernateTemplate getHibernateTemplate()	{
-		HibernateTemplate hibernateTemplate = new HibernateTemplate(getSessionFactory());
+	public HibernateTemplate getHibernateTemplate(SessionFactory sessionFactory)	{
+		HibernateTemplate hibernateTemplate = new HibernateTemplate(sessionFactory);
 	    hibernateTemplate.setCheckWriteOperations(false);
 		return hibernateTemplate;
 	}	
 	
 	@Autowired
 	@Bean(name = "transactionManager")
-	public HibernateTransactionManager getTransactionManager() {
-	    HibernateTransactionManager transactionManager = new HibernateTransactionManager(getSessionFactory());
+	public HibernateTransactionManager getTransactionManager(SessionFactory sessionFactory) {
+	    HibernateTransactionManager transactionManager = new HibernateTransactionManager(sessionFactory);
 	    //transactionManager.getSessionFactory().getCurrentSession().setFlushMode(FlushMode.AUTO);
 	    return transactionManager;
 	}
@@ -50,15 +49,17 @@ public class AppConfiguration extends	WebMvcConfigurerAdapter {
 	    Properties properties = new Properties();
 	    properties.put("hibernate.show_sql", "true");
 	    properties.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
+	    properties.put("hibernate.hbm2ddl.auto", "update");
 	    return properties;
 	}
 
 	@Autowired
 	@Bean(name = "sessionFactory")
-	public SessionFactory getSessionFactory() {
+	public SessionFactory getSessionFactory(DataSource dataSource) {
 	 
-	    LocalSessionFactoryBuilder sessionBuilder = new LocalSessionFactoryBuilder(getDataSource());
+	    LocalSessionFactoryBuilder sessionBuilder = new LocalSessionFactoryBuilder(dataSource);
 	    sessionBuilder.addAnnotatedClasses(TestBO.class);
+	    sessionBuilder.addProperties(getHibernateProperties());
 	    return sessionBuilder.buildSessionFactory();
 	}
 
